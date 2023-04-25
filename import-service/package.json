@@ -1,0 +1,19 @@
+{
+  "name": "import-service",
+  "version": "1.0.0",
+  "description": "import-service stores files to s3 with lambda functions",
+  "main": "handler.js",
+  "scripts": {
+    "deploy": "sls deploy",
+    "test": "jest"
+  },
+  "author": "Kiryl Shaliapin",
+  "license": "ISC",
+  "devDependencies": {
+    "aws-sdk-mock": "^5.8.0",
+    "jest": "^29.5.0"
+  },
+  "dependencies": {
+    "csv-parser": "^3.0.0"
+  }
+}

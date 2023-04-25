@@ -1,0 +1,40 @@
+service: import-service
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  profile: sandx
+  region: eu-west-1
+  stage: dev
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:*
+          Resource:
+            - arn:aws:s3:::shop-files-bucket
+            - arn:aws:s3:::shop-files-bucket/*
+  lambdaHashingVersion:
+
+
+
+functions:
+  importProductsFile:
+    handler: src/importProductsFile.handler
+    events:
+      - http:
+          method: get
+          path: imports
+  importFileParser:
+    handler: src/importFileParser.handler
+    events:
+      - s3:
+          bucket: shop-files-bucket
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+            - suffix: .csv
+          existing: true
+
