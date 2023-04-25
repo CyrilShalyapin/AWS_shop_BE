@@ -108,3 +108,7 @@ module.exports.createProduct = async event => {
     };
   }
 };
+
+module.exports.catalogBatchProcess = () => {
+  console.log('here goes function');
+};
