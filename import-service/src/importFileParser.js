@@ -5,11 +5,10 @@ const csv = require('csv-parser');
 
 const importFileParser = async (event) => {
   const s3 = new AWS.S3();
-  console.log('event', event);
+  const sqs = new AWS.SQS();
 
   try {
     for (const record of event.Records) {
-
       const s3Stream = s3.getObject({
         Bucket: record.s3.bucket.name,
         Key: record.s3.object.key,
@@ -17,8 +16,19 @@ const importFileParser = async (event) => {
 
       s3Stream
         .pipe(csv({ separator: ";" }))
-        .on('data', data => console.log('parsed data', data))
-        .on('error', error => console.error(error))
+        .on('data', data => {
+          sqs.sendMessage({
+            QueueUrl: 'https://sqs.eu-west-1.amazonaws.com/946235596961/catalogItemsQueue',
+            MessageBody: JSON.stringify(data),
+          }, error => {
+            if (error) {
+              console.log('error', error);
+            } else {
+              console.log('message sent with data', data);
+            }
+          }).promise();
+        })
+        .on('error' , error => console.log(error))
         .on('end', () => console.log('record', record));
 
       await s3.copyObject({

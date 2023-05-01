@@ -7,6 +7,9 @@ provider:
   region: eu-west-1
   stage: dev
   profile: 'sandx'
+  environment:
+    SNS_ARN:
+      Ref: createProductTopic
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -14,46 +17,26 @@ provider:
       Resource:
         - arn:aws:dynamodb:eu-west-1:946235596961:table/products
         - arn:aws:dynamodb:eu-west-1:946235596961:table/stocks
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource:
+        - arn:aws:sqs:eu-west-1:946235596961:catalogItemsQueue
+    - Effect: Allow
+      Action:
+        - sns:*
+      Resource:
+        Ref: createProductTopic
 
 plugins:
   - serverless-webpack
 
 custom:
   webpack:
-    webpackConfig: 'webpack.config.js' # Name of webpack configuration file
-    includeModules: true # enable auto-packing of external modules
-    packager: 'npm' # Packager that will be used to package your external modules
-    excludeFiles: src/**/*.test.js # Provide a glob for files to ignore
-
-# you can add statements to the Lambda function's IAM Role here
-#  iam:
-#    role:
-#      statements:
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:ListBucket"
-#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:PutObject"
-#          Resource:
-#            Fn::Join:
-#              - ""
-#              - - "arn:aws:s3:::"
-#                - "Ref" : "ServerlessDeploymentBucket"
-#                - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  patterns:
-#    - '!exclude-me.js'
-#    - '!exclude-me-dir/**'
-#    - include-me.js
-#    - include-me-dir/**
+    webpackConfig: 'webpack.config.js'
+    includeModules: true
+    packager: 'npm'
+    excludeFiles: src/**/*.test.js
 
 functions:
   getProductsList:
@@ -78,7 +61,11 @@ functions:
           method: post
           cors: true
   catalogBatchProcess:
-    handler: handler.catalogBatchProcess
+    handler: src/catalogBatchProcess.handler
+    events:
+      - sqs:
+          batchSize: 5
+          arn: arn:aws:sqs:eu-west-1:946235596961:catalogItemsQueue
 
 resources:
   Resources:
@@ -108,3 +95,33 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    catalogItemsQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: catalogItemsQueue
+    createProductTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: createProductTopic
+    createProductTopicSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: "kiryl_shaliapin@epam.com"
+        Protocol: "email"
+        TopicArn:
+          Ref: "createProductTopic"
+    createProductTopicSubscriptionAlerts: 
+        Type: "AWS::SNS::Subscription"
+        Properties:
+          FilterPolicy:
+            status:
+              - numeric:
+                  - =
+                  - 500
+          FilterPolicyScope: "MessageBody"
+          Endpoint: "kiryl.shaliapin@gmail.com"
+          Protocol: "email"
+          TopicArn: 
+            Ref: "createProductTopic"
+        
+
