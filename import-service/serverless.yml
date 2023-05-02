@@ -16,6 +16,11 @@ provider:
           Resource:
             - arn:aws:s3:::shop-files-bucket
             - arn:aws:s3:::shop-files-bucket/*
+        - Effect: Allow
+          Action:
+            - sqs:*
+          Resource:
+            - arn:aws:sqs:eu-west-1:946235596961:catalogItemsQueue
   lambdaHashingVersion:
 
 
