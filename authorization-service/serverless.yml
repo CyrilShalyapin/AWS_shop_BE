@@ -1,0 +1,21 @@
+service: authorization-service
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  profile: sandx
+  region: eu-west-1
+  stage: dev
+	
+plugins:
+  - serverless-dotenv-plugin
+
+functions:
+  basicAuthorizer:
+    handler: src/basicAuthorizer.handler
+    events:
+      - http:
+          method: get
+          path: import
+
