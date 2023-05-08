@@ -7,6 +7,8 @@ provider:
   profile: sandx
   region: eu-west-1
   stage: dev
+  httpApi:
+    cors: true
   iam:
     role:
       statements:
@@ -31,7 +33,14 @@ functions:
     events:
       - http:
           method: get
-          path: imports
+          path: import
+          cors: true
+          authorizer:
+            name: basicAuthorizer
+            resultTtlInSeconds: 0
+            identitySource: method.request.header.Authorization
+            arn: arn:aws:lambda:eu-west-1:946235596961:function:authorization-service-dev-basicAuthorizer
+            type: request
   importFileParser:
     handler: src/importFileParser.handler
     events:
@@ -42,4 +51,3 @@ functions:
             - prefix: uploaded/
             - suffix: .csv
           existing: true
-

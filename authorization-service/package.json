@@ -1,0 +1,14 @@
+{
+  "name": "authorization-service",
+  "version": "1.0.0",
+  "description": "authorizing since 1904",
+  "main": "handler.js",
+  "scripts": {
+    "deploy": "sls deploy"
+  },
+  "author": "Kiryl Shaliapin",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-dotenv-plugin": "^6.0.0"
+  }
+}
